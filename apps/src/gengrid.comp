@@ -1,0 +1,98 @@
+#version 430
+
+#define UseAtomic 1
+
+struct Vec3f {
+  float x, y, z;
+};
+
+struct Vec4f {
+  float x, y, z, w;
+};
+
+Vec3f cVec3f(float x, float y, float z) {
+  Vec3f r;
+  r.x = x; r.y = y; r.z = z;
+  return r;
+}
+
+Vec4f cVec4f(float x, float y, float z, float w) {
+  Vec4f r;
+  r.x = x; r.y = y; r.z = z; r.w = w;
+  return r;
+}
+
+struct AttribData {
+  Vec4f vertex;
+  Vec4f texCoord;
+  Vec3f normal;
+  Vec4f color;
+};
+
+struct Quad {
+  uint a0, a1, a2;
+  uint b0, b1, b2;
+};
+
+layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+layout (std430, binding = 0) buffer VertexBuffer {
+  AttribData attrib[];
+} vertexBuffer;
+
+layout (std430, binding = 1) buffer IndexBuffer {
+  Quad quads[];
+} indexBuffer;
+
+#if UseAtomic
+layout (binding = 0, offset = 0) uniform atomic_uint quadCounter;
+#endif
+
+uniform float uTime;
+
+float h(float u, float v)
+{
+  return sin(u*8.0 + sin(v*8.0 + uTime)) * .3;
+}
+
+void main() {
+  uint vertexIndex = gl_GlobalInvocationID.x;
+
+  // Generate vertices
+  {
+      vec2 uv = vec2(vertexIndex % 128, vertexIndex / 128) / 128.0;
+      AttribData data;
+      data.vertex = cVec4f(uv.x*2.0 - 1.0, uv.y*2.0 - 1.0, h(uv.x, uv.y), 1.0);
+      data.texCoord = cVec4f(uv.x, uv.y, 0, 1);
+      float eps = .001;
+      vec3 n = normalize(vec3(
+        h(uv.x + eps, uv.y) - h(uv.x - eps, uv.y),
+        h(uv.x, uv.y + eps) - h(uv.x, uv.y - eps),
+        eps * 2.0));
+      data.normal = cVec3f(n.x, n.y, n.z);
+      data.color = cVec4f(1, 1, 1, 1);
+      vertexBuffer.attrib[vertexIndex] = data;
+  }
+
+  // Generate indices
+  {
+      uint x = vertexIndex & 127;
+      uint y = vertexIndex >> 7;
+      if (x < 127 && y < 127)
+      {
+    #if UseAtomic
+        uint quadIndex = atomicCounterIncrement(quadCounter);
+    #else
+        uint quadIndex = vertexIndex - (vertexIndex >> 7);
+    #endif
+        Quad q;
+        q.a0 = vertexIndex;
+        q.a1 = vertexIndex + 1;
+        q.a2 = vertexIndex + 127 + 1;
+        q.b0 = vertexIndex + 1;
+        q.b1 = vertexIndex + 127 + 2;
+        q.b2 = vertexIndex + 127 + 1;
+        indexBuffer.quads[quadIndex] = q;
+      }
+  }
+}
