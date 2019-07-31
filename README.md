@@ -22,12 +22,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Before running cmake on this project:
 1. Clone glfw from https://github.com/glfw/glfw.git to external/glfw.
+
 2. Modify external/glfw/CMakeLists.txt
    to disable example programs, tests and documentation.
+
 3. Generate glad using https://glad.dav1d.de
    and copy files:
+
       include/glad to glfw/deps/glad
+
       include/KHR to glfw/deps/KHR
+
       src to glfw/deps
-
-
