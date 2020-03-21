@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -90,12 +91,14 @@ template <typename T> class tmat4;
 #define VEC2_GET2(A, B) \
     VEC2_GET(A, B) \
     VEC2_GET(B, A)
-#define VEC2_GET3(A, B, C) \
+#define VEC2_GET22(A, B) \
     VEC2_GET2(A, B) \
+    VEC2_GET(A, A) \
+    VEC2_GET(B, B)
+#define VEC2_GET3(A, B, C) \
+    VEC2_GET22(A, B) \
     VEC2_GET2(A, C) \
     VEC2_GET2(B, C) \
-    VEC2_GET(A, A) \
-    VEC2_GET(B, B) \
     VEC2_GET(C, C)
 #define VEC2_GET4(A, B, C, D) \
     VEC2_GET3(A, B, C) \
@@ -237,20 +240,6 @@ template <typename T> class tmat4;
     VEC4_SET3(C, A, B, D) \
     VEC4_SET3(D, A, B, C)
 
-#define VEC2_SWAP(A, B) \
-    void swap_ ## A ## B() { std::swap(A, B); }
-#define VEC2_SWAP3(A, B, C) \
-    VEC2_SWAP(A, B) \
-    VEC2_SWAP(A, C) \
-    VEC2_SWAP(B, C)
-#define VEC2_SWAP4(A, B, C, D) \
-    VEC2_SWAP(A, B) \
-    VEC2_SWAP(A, C) \
-    VEC2_SWAP(A, D) \
-    VEC2_SWAP(B, C) \
-    VEC2_SWAP(B, D) \
-    VEC2_SWAP(C, D)
-
 template <typename T>
 class tvec2 {
 public:
@@ -271,13 +260,8 @@ public:
     tvec2& operator*=(T a) { x *= a; y *= a; return *this; }
     tvec2& operator/=(T a) { x /= a; y /= a; return *this; }
 
-    VEC2_GET2(x, y)
-    VEC2_GET(x, x)
-    VEC2_GET(y, y)
-
+    VEC2_GET22(x, y)
     VEC2_SET2(x, y)
-
-    VEC2_SWAP(x, y)
 
     template <typename TT>
     tvec2(const tvec2<TT>& v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)) { }
@@ -335,8 +319,6 @@ public:
     VEC3_GET33(x, y, z)
     VEC3_SET3(x, y, z)
 
-    VEC2_SWAP3(x, y, z)
-
     template <typename TT>
     tvec3(const tvec3<TT>& v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)), z(static_cast<T>(v.z)) { }
 };
@@ -391,13 +373,14 @@ public:
     tvec4<T>& operator*=(T a) { x *= a; y *= a; z *= a; w *= a; return *this; }
     tvec4<T>& operator/=(T a) { x /= a; y /= a; z /= a; w /= a; return *this; }
 
+    VEC2_GET4(x, y, z, w)
+    VEC2_SET4(x, y, z, w)
+
     VEC3_GET44(x, y, z, w)
     VEC3_SET4(x, y, z, w)
 
     VEC4_GET44(x, y, z, w)
     VEC4_SET4(x, y, z, w)
-
-    VEC2_SWAP4(x, y, z, w)
 
     template <typename TT>
     tvec4(const tvec4<TT>& v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)), z(static_cast<T>(v.z)), w(static_cast<T>(v.w)) { }
@@ -429,6 +412,7 @@ bool operator!=(const tvec4<T>& a, const tvec4<T>& b) { return a.x != b.x || a.y
 
 #undef VEC2_GET
 #undef VEC2_GET2
+#undef VEC2_GET22
 #undef VEC2_GET3
 #undef VEC2_GET4
 
@@ -454,19 +438,17 @@ bool operator!=(const tvec4<T>& a, const tvec4<T>& b) { return a.x != b.x || a.y
 #undef VEC2_SET
 #undef VEC2_SET2
 #undef VEC2_SET3
+#undef VEC2_SET4
 
 #undef VEC3_SET
 #undef VEC3_SET2
 #undef VEC3_SET3
+#undef VEC3_SET4
 
 #undef VEC4_SET
 #undef VEC4_SET2
 #undef VEC4_SET3
 #undef VEC4_SET4
-
-#undef VEC2_SWAP
-#undef VEC2_SWAP3
-#undef VEC2_SWAP4
 
 template <typename T>
 class tmat2 {
